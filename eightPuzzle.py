@@ -6,7 +6,7 @@ import itertools #used for tiebreaker between nodes with equal costs, turns it i
 6 7 8
 '''
 
-defaultPuzzle = [1,2,3,4,5,6,7,0,8]
+defaultPuzzle = [1,2,3,4,5,6,7,8,0]
 
 goal = [1,2,3,4,5,6,7,8,0]
 
@@ -41,8 +41,8 @@ def main():
 	else:
 		print("invalid input, uniform cost search inbound\n")
 		generalSearch(puzzle, uniformCost)	
-	for p in expand((0,puzzle)):
-		printPuzzle(p)
+#	for p in expand((0,puzzle)):
+#		printPuzzle(p)
 	return
 def getBlankIndex(p):
 	for i in range(len(p)):
@@ -63,7 +63,8 @@ def moveBlankUp(p):
 	#logic is the same for other moveBlank operators
 
 def moveBlankDown(p):
-	if (blankIndex + 3) > len(p):
+	blankIndex = getBlankIndex(p)
+	if (blankIndex + 3) >= len(p):
 		return p
 	blankIndex = getBlankIndex(p)
 	
@@ -73,6 +74,7 @@ def moveBlankDown(p):
 	return newPuzzle
 
 def moveBlankRight(p):
+	blankIndex = getBlankIndex(p)
 	if (blankIndex % 3) == 2:
 		return p
 	blankIndex = getBlankIndex(p)
@@ -82,6 +84,7 @@ def moveBlankRight(p):
 	return newPuzzle
 
 def moveBlankLeft(p):
+	blankIndex = getBlankIndex(p)
 	if (blankIndex % 3) == 0:
 		return p
 	blankIndex = getBlankIndex(p)
@@ -91,7 +94,7 @@ def moveBlankLeft(p):
 	return newPuzzle
 
 
-def isGoalState2(p):
+def isGoalState(p):
 	if p == [1,2,3,4,5,6,7,8,0]:
 		return True
 	return False
@@ -103,7 +106,7 @@ def expand(node):
 
 def uniformCost(nodes, expansion, visited):
 	for state in expansion:
-		if state not in visited:
+		if tuple(state) not in visited:
 			nodes.put( (1, next(tiebreaker), state) )
 
 	return nodes
@@ -113,7 +116,7 @@ def misplacedTile(nodes, expansion, visited):
 	for state in expansion:
 		numMisplaced = 0
 		for i in range(len(state)):
-			if state not in visited:
+			if tuple(state) not in visited:
 				if state[i] != i+1:
 					if state[i] != 0:
 						numMisplaced += 1
@@ -125,7 +128,7 @@ def misplacedTile(nodes, expansion, visited):
 #https://stackoverflow.com/questions/39759721/calculating-the-manhattan-distance-in-the-eight-puzzle
 def manhattanDist(nodes, expansion, visited):
 	for state in expansion:
-		if state not in visited:
+		if tuple(state) not in visited:
 			manDist = sum(abs((val-1)%3 - i%3) + abs((val-1)//3 - i//3)
 				for i, val in enumerate(state) if val)
 			nodes.put( (manDist, next(tiebreaker), state) )
@@ -144,18 +147,19 @@ def generalSearch(p, queueingFunc):
 	while True:
 		#if queue ends up empty, we've processed entire tree with no solution found
 		if nodes.empty():
+			print("failed")
 			return "failure -- puzzle unsolvable"
 		#grab node at head of queue
 		node = nodes.get()
 		#mark this puzzle state as visited
-		visited.add(node[2])
+		visited.add(tuple(node[2]))
 		3#if we've found goal state, return it
 		if isGoalState(node):
 			print("i did it")
 			print(node[2])
 			return node[2]
 		#if there's more nodes and we haven't found goal yet, expand curr node and enqueue using queueing function
-		nodes = queueingfunc(nodes, expand(node))
+		nodes = queueingFunc(nodes, expand(node), visited)
 
 def printPuzzle(puzzle):
 	for i in range(len(puzzle)):

@@ -5,27 +5,25 @@ import itertools #used for tiebreaker between nodes with equal costs, turns it i
 3 4 5
 6 7 8
 '''
-defaultPuzzle = [[1,2,3],
-		 [4,5,6],
-		 [7,0,8]]
 
-defaultPuzzle2 = [1,2,3,4,5,6,7,0,8]
+defaultPuzzle = [1,2,3,4,5,6,7,0,8]
 
 goal = [1,2,3,4,5,6,7,8,0]
+
 tiebreaker = itertools.count()
+
 def main():
 	#prompt user for puzzle choice and store decision
 	print("Welcome to Robert Colvin's 8-puzzle solver.")
 	puzChoice = input('Type "1" to use a default puzzle, or "2" to enter your own puzzle.\n')
 	if puzChoice == "1":
-		puzzle = defaultPuzzle2
+		puzzle = defaultPuzzle
 	#if user wants to create puzzle, call function for that
 	elif puzChoice == "2":
-		puzzle = userGeneratePuzzle2()
-	#else statement for the jerks
+		puzzle = userGeneratePuzzle()
 	else:
 		print("Invalid input. Default puzzle inbound.\n")
-		puzzle = defaultPuzzle2
+		puzzle = defaultPuzzle
 
 	#prompt for algorithm choice
 	print("Now, choose your algorithm to solve")
@@ -35,8 +33,7 @@ def main():
 	algChoice = input()
 	
 	if algChoice == "1":
-		generalSearch(puzzle, uniformCost)
-	
+		generalSearch(puzzle, uniformCost)	
 	elif algChoice == "2":
 		generalSearch(puzzle, misplacedTile)
 	elif algChoice == "3":
@@ -44,6 +41,8 @@ def main():
 	else:
 		print("invalid input, uniform cost search inbound\n")
 		generalSearch(puzzle, uniformCost)	
+	for p in expand((0,puzzle)):
+		printPuzzle(p)
 	return
 def getBlankIndex(p):
 	for i in range(len(p)):
@@ -91,76 +90,81 @@ def moveBlankLeft(p):
 	newPuzzle[blankIndex-1] = 0
 	return newPuzzle
 
-def isGoalState(p):
-	if p == [[1,2,3],[4,5,6],[7,8,0]]:
-		return True
-	return False
 
 def isGoalState2(p):
 	if p == [1,2,3,4,5,6,7,8,0]:
 		return True
 	return False
 
-#takes a node of form (value, puzzle state) and returns list of puzzle states (not nodes) for each operator
+#takes a node of form (value, tiebreaker value, puzzle state) and returns list of puzzle states (not nodes) for each operator
 def expand(node):
-	expansion = [moveBlankUp(node[1]),moveBlankDown(node[1]),moveBlankRight(node[1]),moveBlankLeft(node[1])]
+	expansion = [moveBlankUp(node[2]),moveBlankDown(node[2]),moveBlankRight(node[2]),moveBlankLeft(node[2])]
 	return expansion
 
-		
-
-def uniformCost(nodes, expansion):
+def uniformCost(nodes, expansion, visited):
 	for state in expansion:
-		nodes.put((1,state))
+		if state not in visited:
+			nodes.put( (1, next(tiebreaker), state) )
 
 	return nodes
 
 #counts number of tiles not in the correct position, excluding blank (0)
-def misplacedTile(p): 
-	numMisplaced = 0
-	for i in range(len(p)):
-		if p[i] != i+1:
-			if p[i] != 0:
-				numMisplaced += 1
-	return numMisplaced
+def misplacedTile(nodes, expansion, visited): 
+	for state in expansion:
+		numMisplaced = 0
+		for i in range(len(state)):
+			if state not in visited:
+				if state[i] != i+1:
+					if state[i] != 0:
+						numMisplaced += 1
+			nodes.put( (numMisplaced, next(tiebreaker), state) )
+
+	return nodes
 
 #this code was found at the following URL:
 #https://stackoverflow.com/questions/39759721/calculating-the-manhattan-distance-in-the-eight-puzzle
-def manhattanDist(p):
-	manDist = sum(abs((val-1)%3 - i%3) + abs((val-1)//3 - i//3)
-		for i, val in enumerate(p) if val)
+def manhattanDist(nodes, expansion, visited):
+	for state in expansion:
+		if state not in visited:
+			manDist = sum(abs((val-1)%3 - i%3) + abs((val-1)//3 - i//3)
+				for i, val in enumerate(state) if val)
+			nodes.put( (manDist, next(tiebreaker), state) )
 
-	return manDist
+	return nodes
 
 
 def generalSearch(p, queueingFunc):
 	#a queue for nodes to expand
 	nodes = queue.PriorityQueue()
-	#priority queue containing elements of the pattern (priority_number, tiepuzzle)
-	nodes.put((0,-1,p)
+	#priority queue containing elements of the pattern (priority_number, tiebreaker, puzzle)
+	nodes.put((0,-1,p))
 	#a set for visited nodes because ordering doesn't matter and there is no need for it to hold duplicates
 	visited = set()
+	#while loop goes forever but actually until queue is empty or goal is found
 	while True:
+		#if queue ends up empty, we've processed entire tree with no solution found
 		if nodes.empty():
-			return "failure"
+			return "failure -- puzzle unsolvable"
+		#grab node at head of queue
 		node = nodes.get()
+		#mark this puzzle state as visited
 		visited.add(node[2])
+		3#if we've found goal state, return it
 		if isGoalState(node):
-			return node
+			print("i did it")
+			print(node[2])
+			return node[2]
+		#if there's more nodes and we haven't found goal yet, expand curr node and enqueue using queueing function
 		nodes = queueingfunc(nodes, expand(node))
 
-#this function is directly copied from sample report
 def printPuzzle(puzzle):
-	for i in range(3):
-		print(puzzle[i])
-	print('\n')
-def printPuzzle2(puzzle):
 	for i in range(len(puzzle)):
 		if i % 3 == 0:
 			print()
 		print(str(puzzle[i]) + " ", end='')
 	print('\n')
 
-def userGeneratePuzzle2():
+def userGeneratePuzzle():
 	#prompt for user input
 	print("Enter your puzzle, using zero to represent the blank and enter to represent end of a row")
 	row1 = input("\nEnter 1st row, with space/tab between numbers\t")
@@ -174,23 +178,6 @@ def userGeneratePuzzle2():
 		p[i] = int(p[i])
 
 	return p
-def userGeneratePuzzle():
-	#prompt for user input
-	print("Enter your puzzle, using zero to represent the blank and enter to represent end of a row")
-	row1 = input("\nEnter 1st row, with space/tab between numbers\t")
-	row2 = input("\nEnter 2nd row, with space/tab between numbers\t")
-	row3 = input("\nEnter 3rd row, with space/tab between numbers\t")
-	#split each input string into string lists
-	row1 = row1.split()
-	row2 = row2.split()
-	row3 = row3.split()
-	#turn string lists into int lists, assuming totally valid input
-	for i in range(3):
-		row1[i] = int(row1[i])
-		row2[i] = int(row2[i])
-		row3[i] = int(row3[i])
-
-	return [row1, row2, row3]
 
 if __name__ == '__main__':
 	main()

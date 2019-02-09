@@ -1,15 +1,17 @@
 import queue #used for search algorithm
 import itertools #used for tiebreaker between nodes with equal costs, turns it into FIFO for ties
+import random #used to select a random index (difficulty) in defaultPuzzlez
 '''
 0 1 2
 3 4 5
 6 7 8
 '''
-
-defaultPuzzle = [1,2,3,4,5,6,7,8,0]
-
+defaultPuzzlez = [[1,2,3,4,5,6,7,0,8],
+		  [1,2,3,7,4,5,8,0,6],
+		  [1,3,6,4,5,2,7,0,8],
+		  [4,1,3,0,2,6,7,5,8],
+		  [8,6,7,2,5,4,3,0,1]] #<- this is is at diameter depth (31)
 goal = [1,2,3,4,5,6,7,8,0]
-
 tiebreaker = itertools.count()
 
 def main():
@@ -17,13 +19,13 @@ def main():
 	print("Welcome to Robert Colvin's 8-puzzle solver.")
 	puzChoice = input('Type "1" to use a default puzzle, or "2" to enter your own puzzle.\n')
 	if puzChoice == "1":
-		puzzle = defaultPuzzle
+		puzzle = defaultPuzzlez[random.randint(0,4)]
 	#if user wants to create puzzle, call function for that
 	elif puzChoice == "2":
 		puzzle = userGeneratePuzzle()
 	else:
 		print("Invalid input. Default puzzle inbound.\n")
-		puzzle = defaultPuzzle
+		puzzle = defaultPuzzlez[random.randint(0,6)]
 	#prompt for algorithm choice
 	print("Now, choose your algorithm to solve")
 	print("1. Uniform Cost Search")
@@ -115,10 +117,10 @@ def misplacedTile(nodes, expansion, visited):
 	for state in expansion:
 		numMisplaced = 0
 		for i in range(len(state)):
-			if tuple(state) not in visited:
-				if state[i] != i+1:
-					if state[i] != 0:
-						numMisplaced += 1
+			if state[i] != i+1:
+				if state[i] != 0:
+					numMisplaced += 1
+		if tuple(state) not in visited:
 			nodes.put( (numMisplaced, next(tiebreaker), state) )
 
 	return nodes
@@ -146,18 +148,20 @@ def generalSearch(p, queueingFunc):
 	while True:
 		#if queue ends up empty, we've processed entire tree with no solution found
 		if nodes.empty():
-			print("failed")
-			return "failure -- puzzle unsolvable"
+			print("Failed -- puzzle unsolvable")
+			return 
 		#grab node at head of queue
 		node = nodes.get()
+		print("Processing the following puzzle state:")
+		printPuzzle(node[2])
 		#mark this puzzle state as visited
 		visited.add(tuple(node[2]))
-		3#if we've found goal state, return it
+		#if we've found goal state, return it
 		if isGoalState(node[2]):
 			print("i did it")
 			print(node[2])
-			return node[2]
-#		print(node[2], " is not ", goal)
+			return
+		print("not goal\n\n")
 		#if there's more nodes and we haven't found goal yet, expand curr node and enqueue using queueing function
 		nodes = queueingFunc(nodes, expand(node), visited)
 

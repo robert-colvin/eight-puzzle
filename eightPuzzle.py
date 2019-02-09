@@ -24,7 +24,6 @@ def main():
 	else:
 		print("Invalid input. Default puzzle inbound.\n")
 		puzzle = defaultPuzzle
-
 	#prompt for algorithm choice
 	print("Now, choose your algorithm to solve")
 	print("1. Uniform Cost Search")
@@ -154,10 +153,11 @@ def generalSearch(p, queueingFunc):
 		#mark this puzzle state as visited
 		visited.add(tuple(node[2]))
 		3#if we've found goal state, return it
-		if isGoalState(node):
+		if isGoalState(node[2]):
 			print("i did it")
 			print(node[2])
 			return node[2]
+#		print(node[2], " is not ", goal)
 		#if there's more nodes and we haven't found goal yet, expand curr node and enqueue using queueing function
 		nodes = queueingFunc(nodes, expand(node), visited)
 

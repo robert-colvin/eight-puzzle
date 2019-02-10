@@ -122,7 +122,7 @@ def isGoalState(p):
 
 #takes a node of form (cost, tiebreaker value, puzzle state) and returns list of tuples of (puzzle states, cost of operator) -- these tuples are not the same type of tuples used in queue
 def expand(node):
-	expansion = [ moveBlankUp(node[2], node[0]), moveBlankDown(node[2], node[0]), moveBlankRight(node[2], node[0]), moveBlankLeft(node[2], node[0])]
+	expansion = [ moveBlankUp(node[2], node[3]), moveBlankDown(node[2], node[3]), moveBlankRight(node[2], node[3]), moveBlankLeft(node[2], node[3])]
 	global nodesExpanded
 	nodesExpanded += 1
 	return expansion

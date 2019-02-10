@@ -17,6 +17,9 @@ goal = [1,2,3,4,5,6,7,8,0]
 
 #to make priority queue FIFO when there is a tie on priority number
 tiebreaker = itertools.count()
+nodesExpanded = 0
+maxNodesInQueue = 0
+goalDepth = 0
 
 def main():
 	#prompt user for puzzle choice and store decision
@@ -38,6 +41,7 @@ def main():
 	print("3. A* with Manhattan distance heuristic")
 	#store algorithm decision
 	algChoice = input()
+	print("\n")
 	
 	if algChoice == "1":
 		generalSearch(puzzle, algChoice)	
@@ -48,6 +52,10 @@ def main():
 	else:
 		print("invalid input, uniform cost search inbound\n")
 		generalSearch(puzzle, uniformCost, "1")	
+
+	print("To solve this problem the search algorithm expanded a total of " + str(nodesExpanded) + " nodes")
+	print("The maximum number of nodes in the queue at any one time was " + str(maxNodesInQueue))
+	print("The depth of the goal was " + str(goalDepth))
 	return
 
 #finds where blank is in list
@@ -58,7 +66,7 @@ def getBlankIndex(p):
 
 #takes a puzzle state (list) as parameter, checks if operation can be performed on that state and returns (state after operation, cost of operator) if so
 #returns original state if operation is not possible
-def moveBlankUp(p):
+def moveBlankUp(p, initialCost):
 	#set cost in operator functions to keep it general
 	cost = 1
 	#first check if the blank can be moved up on the simulated square game board
@@ -70,10 +78,10 @@ def moveBlankUp(p):
 	newPuzzle = p.copy()
 	newPuzzle[blankIndex] = newPuzzle[blankIndex-3]
 	newPuzzle[blankIndex-3] = 0
-	return (newPuzzle, cost)
+	return (newPuzzle, cost + initialCost)
 	#logic is the same for other moveBlank operators
 
-def moveBlankDown(p):
+def moveBlankDown(p, initialCost):
 	cost = 1
 	blankIndex = getBlankIndex(p)
 	if (blankIndex + 3) >= len(p):
@@ -82,9 +90,9 @@ def moveBlankDown(p):
 	newPuzzle = p.copy()
 	newPuzzle[blankIndex] = newPuzzle[blankIndex+3]
 	newPuzzle[blankIndex+3] = 0
-	return (newPuzzle, cost)
+	return (newPuzzle, cost + initialCost)
 
-def moveBlankRight(p):
+def moveBlankRight(p, initialCost):
 	cost = 1
 	blankIndex = getBlankIndex(p)
 	if (blankIndex % 3) == 2:
@@ -93,9 +101,9 @@ def moveBlankRight(p):
 	newPuzzle = p.copy()
 	newPuzzle[blankIndex] = newPuzzle[blankIndex+1]
 	newPuzzle[blankIndex+1] = 0
-	return (newPuzzle, cost)
+	return (newPuzzle, cost + initialCost)
 
-def moveBlankLeft(p):
+def moveBlankLeft(p, initialCost):
 	cost = 1
 	blankIndex = getBlankIndex(p)
 	if (blankIndex % 3) == 0:
@@ -104,7 +112,7 @@ def moveBlankLeft(p):
 	newPuzzle = p.copy()
 	newPuzzle[blankIndex] = newPuzzle[blankIndex-1]
 	newPuzzle[blankIndex-1] = 0
-	return (newPuzzle, cost)
+	return (newPuzzle, cost + initialCost)
 
 #checks if current puzzle state is the goal state
 def isGoalState(p):
@@ -112,9 +120,11 @@ def isGoalState(p):
 		return True
 	return False
 
-#takes a node of form (value, tiebreaker value, puzzle state) and returns list of tuples of (puzzle states, cost of operator) -- these tuples are not the same type of tuples used in queue
+#takes a node of form (cost, tiebreaker value, puzzle state) and returns list of tuples of (puzzle states, cost of operator) -- these tuples are not the same type of tuples used in queue
 def expand(node):
-	expansion = [ moveBlankUp(node[2]), moveBlankDown(node[2]), moveBlankRight(node[2]), moveBlankLeft(node[2])]
+	expansion = [ moveBlankUp(node[2], node[0]), moveBlankDown(node[2], node[0]), moveBlankRight(node[2], node[0]), moveBlankLeft(node[2], node[0])]
+	global nodesExpanded
+	nodesExpanded += 1
 	return expansion
 
 #takes queue of nodes, list of nodes that were just expanded, and set of visited states
@@ -184,14 +194,20 @@ def aStar(nodes, expansion, visited, choice):
 				hn = mt(state[0])
 			elif choice == "3":
 				hn = md(state[0])
-			nodes.put( (gn + hn, next(tiebreaker), state[0]) )
+			nodes.put( (gn + hn, next(tiebreaker), state[0], gn, hn) )
+			global maxNodesInQueue
+			maxNodesInQueue = max(maxNodesInQueue,nodes.qsize())
+	
 	return nodes
 
 def generalSearch(p, choice):
 	#a queue for nodes to expand
 	nodes = queue.PriorityQueue()
-	#priority queue containing elements of the pattern (priority_number, tiebreaker, puzzle)
-	nodes.put((0,-1,p))
+	#priority queue containing elements of the pattern (priority_number, tiebreaker, puzzle, g(n), h(n)
+	nodes.put((0,-1,p,0,0))
+	global maxNodesInQueue 
+	maxNodesInQueue= max(maxNodesInQueue,nodes.qsize())
+	print("Expanding state")
 	#a set for visited nodes because ordering doesn't matter and there is no need for it to hold duplicates
 	visited = set()
 	#while loop goes forever but actually until queue is empty or goal is found
@@ -202,16 +218,19 @@ def generalSearch(p, choice):
 			return 
 		#grab node at head of queue
 		node = nodes.get()
-		print("Processing the following puzzle state:")
+		print("The best state to expand with a g(n) = " + str(node[3]) + " and h(n) = " + str(node[4]) + " is...")
 		printPuzzle(node[2])
+		print("Expanding this node...\n")
 		#mark this puzzle state as visited
 		visited.add(tuple(node[2]))
 		#if we've found goal state, notify user and return
 		if isGoalState(node[2]):
-			print("Puzzle solved:")
+			print("Goal!!")
 			printPuzzle(node[2])
+			global goalDepth
+			goalDepth = node[3]
 			return
-		print("This state is not the goal state\n\n")
+#		print("This state is not the goal state\n\n")
 		#if there's more nodes and we haven't found goal yet, expand curr node and enqueue using aStar algorithm
 		nodes = aStar(nodes, expand(node), visited, choice)
 
@@ -219,8 +238,11 @@ def printPuzzle(puzzle):
 	for i in range(len(puzzle)):
 		if i % 3 == 0 and i > 0:
 			print()
-		print(str(puzzle[i]) + " ", end='')
-	print('\n')
+		if puzzle[i] == 0:
+			print("b" + " ", end="")
+		else:
+			print(str(puzzle[i]) + " ", end='')
+	print()
 
 def userGeneratePuzzle():
 	#prompt for user input

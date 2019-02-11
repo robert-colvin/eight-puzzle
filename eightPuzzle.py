@@ -10,7 +10,18 @@ defaultPuzzlez = [[1,2,3,4,5,6,7,0,8],
 		  [1,2,3,7,4,5,8,0,6],
 		  [1,3,6,4,5,2,7,0,8],
 		  [4,1,3,0,2,6,7,5,8],
-		  [8,6,7,2,5,4,3,0,1]] #<- this is is at diameter depth (31)
+		  [8,6,7,2,5,4,3,0,1],#<- this is is at diameter depth (31)
+		  [1,8,2,0,4,3,7,6,5],
+		  [3,2,5,1,0,7,4,8,6],
+		  [0,1,2,4,5,8,7,6,3],
+		  [1,5,6,7,4,2,8,3,0],
+		  [4,1,3,7,0,6,5,2,8],
+		  [3,5,0,2,1,8,6,4,7],
+		  [1,2,3,4,0,6,7,5,8],
+		  [7,2,8,4,3,5,0,1,6],
+		  [6,4,3,0,5,8,2,1,7],
+		  [5,0,8,7,1,4,6,3,2],
+		  [7,5,8,6,1,0,3,2,4]] 
 
 #for comparison to goal state
 goal = [1,2,3,4,5,6,7,8,0]
@@ -27,13 +38,13 @@ def main():
 	puzChoice = input('Type "1" to use a default puzzle, or "2" to enter your own puzzle.\n')
 	#randomly pick one of five default puzzles of varying difficulty
 	if puzChoice == "1":
-		puzzle = defaultPuzzlez[random.randint(0,4)]
+		puzzle = defaultPuzzlez[random.randint(0,len(defaultPuzzlez)-1)]
 	#if user wants to create puzzle, call function for that
 	elif puzChoice == "2":
 		puzzle = userGeneratePuzzle()
 	else:
 		print("Invalid input. Default puzzle inbound.\n")
-		puzzle = defaultPuzzlez[random.randint(0,4)]
+		puzzle = defaultPuzzlez[random.randint(0,len(defaultPuzzlez)-1)]
 	#prompt for algorithm choice
 	print("Now, choose your algorithm to solve")
 	print("1. Uniform Cost Search")
@@ -56,6 +67,16 @@ def main():
 	print("To solve this problem the search algorithm expanded a total of " + str(nodesExpanded) + " nodes")
 	print("The maximum number of nodes in the queue at any one time was " + str(maxNodesInQueue))
 	print("The depth of the goal was " + str(goalDepth))
+	if algChoice == "2":
+		filename = "misplacedTileData.txt"
+	elif algChoice == "3":
+		filename = "manhattanDistance.txt"
+	else:
+		filename = "uniformCost.txt"
+
+	file = open(filename,"a")
+	file.write("nodes expanded = " + str(nodesExpanded) + " max nodes = " + str(maxNodesInQueue) + " depth = " + str(goalDepth) + "\n")
+	file.close()
 	return
 
 #finds where blank is in list

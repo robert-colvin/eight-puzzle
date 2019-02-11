@@ -1,0 +1,16 @@
+nodes expanded = 2 max nodes = 5 depth = 1
+nodes expanded = 60 max nodes = 44 depth = 5
+nodes expanded = 121 max nodes = 87 depth = 7
+nodes expanded = 33 max nodes = 28 depth = 5
+nodes expanded = 519140 max nodes = 73066 depth = 31
+nodes expanded = 424 max nodes = 260 depth = 9
+nodes expanded = 15624 max nodes = 8755 depth = 16
+nodes expanded = 658 max nodes = 413 depth = 10
+nodes expanded = 13903 max nodes = 7531 depth = 16
+nodes expanded = 259 max nodes = 174 depth = 8
+nodes expanded = 166084 max nodes = 52086 depth = 22
+nodes expanded = 7 max nodes = 8 depth = 2
+nodes expanded = 117882 max nodes = 51418 depth = 22
+nodes expanded = 96330 max nodes = 43668 depth = 21
+nodes expanded = 113482 max nodes = 45442 depth = 21
+nodes expanded = 309757 max nodes = 73068 depth = 25

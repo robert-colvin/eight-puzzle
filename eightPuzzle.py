@@ -67,16 +67,6 @@ def main():
 	print("To solve this problem the search algorithm expanded a total of " + str(nodesExpanded) + " nodes")
 	print("The maximum number of nodes in the queue at any one time was " + str(maxNodesInQueue))
 	print("The depth of the goal was " + str(goalDepth))
-	if algChoice == "2":
-		filename = "misplacedTileData.txt"
-	elif algChoice == "3":
-		filename = "manhattanDistance.txt"
-	else:
-		filename = "uniformCost.txt"
-
-	file = open(filename,"a")
-	file.write("nodes expanded = " + str(nodesExpanded) + " max nodes = " + str(maxNodesInQueue) + " depth = " + str(goalDepth) + "\n")
-	file.close()
 	return
 
 #finds where blank is in list
